@@ -54,7 +54,7 @@ def print_lessons(lessons):
     for l in lessons:
         symbol, weekday, day, month, start, end, color = l["symbol"], l["weekday"], l["day"], l["month"], l["start"], l["end"], l["color"]
         teacher, subject, room = l["teacher"], l["subject"], l["room"]
-        type = l["type"]
+        type_ = l["type"]
 
         if "sospensione didattica" in teacher.lower():
             print( colored(f"\n{symbol} {weekday[:3]} {day[2]} {month} {day[0]}, {start}-{end}", "red", attrs=["bold"]) )
@@ -63,7 +63,7 @@ def print_lessons(lessons):
             continue
 
         print( colored(f"\n{symbol} {weekday[:3]} {day[2]} {month} {day[0]}, {start}-{end}", color, attrs=["bold"]), end="" )
-        print( colored(f" [Esame]" if type == "esame" else "", "magenta", attrs=["bold"]) )
+        print( colored(f" [Esame]" if type_ == "esame" else "", "magenta", attrs=["bold"]) )
         print( colored("-"*37, color) )
         print( colored(f"\t\t{teacher}\rTeacher: ", color) )
         print( colored(f"\t\t{subject}\rSubject: ", color) )
