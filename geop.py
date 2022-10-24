@@ -1,6 +1,7 @@
 #!/bin/python
+#/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/bin/python
 from requests import Session, utils
-from datetime import date, time, timedelta
+from datetime import date, time, timedelta, datetime
 from getpass import getpass
 from sys import argv
 from time import sleep
@@ -17,6 +18,10 @@ MAIL_REGEX = "^[\w\-\.]+@itsrizzoli.it$"
 def extract_info(info):
 
     WEEKDAY = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    SYMBOLS = {
+        "ok": "✔",
+        "cross": "x"
+    }
 
     lessons = []    # list of dictionaries. used to sort the lessons before displaying them
 
@@ -30,15 +35,18 @@ def extract_info(info):
         lesson["room"]    = _lesson["tooltip"].split("<br>")[2].split(":")[1].strip()
         lesson["day"]     = _lesson["start"].split("T")[0].split("-")
         lesson["month"]   = calendar.month_abbr[int(lesson["day"][1])]
-        weekday_num = calendar.weekday( int(lesson["day"][0]), int(lesson["day"][1]), int(lesson["day"][2]) )
+        weekday_num       = calendar.weekday( int(lesson["day"][0]), int(lesson["day"][1]), int(lesson["day"][2]) )
         lesson["weekday"] = WEEKDAY[weekday_num]
-        lesson["type"] = _lesson["ClasseEvento"].lower()
+        lesson["type"]    = _lesson["ClasseEvento"].lower()
+
+        lesson_date = datetime(int(lesson["day"][0]), int(lesson["day"][1]), int(lesson["day"][2]), int(lesson["start"].split(":")[0]), int(lesson["start"].split(":")[1]))
+        lesson["isDone"] = lesson_date < datetime.today()
         
-        lesson["color"] = "green"
-        lesson["symbol"] = "✔"
-        if _lesson["backgroundColor"] == "#B7B7B7":
+        lesson["color"] = "white"
+        lesson["symbol"] = SYMBOLS["cross"]
+        if lesson["isDone"] == True:
             lesson["color"] = "white"
-            lesson["symbol"] = "x"
+            lesson["symbol"] = SYMBOLS["ok"]
         
         if lesson["type"] == "esame":
             lesson["color"] = "magenta"
@@ -47,20 +55,36 @@ def extract_info(info):
 
     return lessons
 
+# todo: far si che il formato della data sia sempre di tipo "date"
 def print_lessons(lessons):
     
     lessons.sort(key=lambda l: (int(l["day"][0]), int(l["day"][1]), int(l["day"][2]) ))
 
     for l in lessons:
+        canPrintDay = True
         symbol, weekday, day, month, start, end, color = l["symbol"], l["weekday"], l["day"], l["month"], l["start"], l["end"], l["color"]
         teacher, subject, room = l["teacher"], l["subject"], l["room"]
         type_ = l["type"]
+
+        previous_lesson_i = lessons.index(l) - 1
+        if previous_lesson_i >= 0:
+            previous_lesson = lessons[previous_lesson_i]
+            if previous_lesson["day"] == day:
+                canPrintDay = False
 
         if "sospensione didattica" in teacher.lower():
             print( colored(f"\n{symbol} {weekday[:3]} {day[2]} {month} {day[0]}, {start}-{end}", "red", attrs=["bold"]) )
             print( colored("-"*37, "red") )
             print( colored("Sospensione didattica", "red") )
             continue
+
+        if not canPrintDay:
+            print(" "*19, end="")
+            print( colored(f"{start}-{end}", color, attrs=["bold"]) )
+            print( colored(f"\t\t{teacher}\rTeacher: ", color) )
+            print( colored(f"\t\t{subject}\rSubject: ", color) )
+            print( colored(f"\t\t{room}\rRoom: ", color) )
+            return
 
         print( colored(f"\n{symbol} {weekday[:3]} {day[2]} {month} {day[0]}, {start}-{end}", color, attrs=["bold"]), end="" )
         print( colored(f" [Esame]" if type_ == "esame" else "", "magenta", attrs=["bold"]) )
@@ -224,6 +248,9 @@ def main():
     site = "https://itsar.registrodiclasse.it"
     lessons_url = f"/geopcfp2/json/fullcalendar_events_alunno.asp?Oggetto=idAlunno&idOggetto=2672&editable=false&z=1665853136739&start={start_date}&end={end_date}&_=1665853136261"
     login_url = "/geopcfp2/update/login.asp?1=1&ajax_target=DIVHidden&ajax_tipotarget=login"
+    # used to get presence of the student from website
+    presence_url = "https://itsar.registrodiclasse.it/geopcfp2/json/data_tables_ricerca_registri.asp"
+    presence_body = "columns%5B0%5D%5Bdata%5D=idRegistroAlunno&columns%5B0%5D%5Bname%5D=idRegistroAlunno&columns%5B1%5D%5Bdata%5D=Giorno&columns%5B1%5D%5Bname%5D=Giorno&columns%5B2%5D%5Bdata%5D=Data&columns%5B2%5D%5Bname%5D=Data&columns%5B3%5D%5Bdata%5D=DataOraInizio&columns%5B3%5D%5Bname%5D=DataOraInizio&columns%5B4%5D%5Bdata%5D=DataOraFine&columns%5B4%5D%5Bname%5D=DataOraFine&columns%5B5%5D%5Bdata%5D=MinutiPresenza&columns%5B5%5D%5Bname%5D=MinutiPresenza&columns%5B6%5D%5Bdata%5D=MinutiAssenza&columns%5B6%5D%5Bname%5D=MinutiAssenza&columns%5B7%5D%5Bdata%5D=CodiceMateria&columns%5B7%5D%5Bname%5D=CodiceMateria&columns%5B8%5D%5Bdata%5D=Materia&columns%5B8%5D%5Bname%5D=Materia&columns%5B9%5D%5Bdata%5D=CognomeDocente&columns%5B9%5D%5Bname%5D=CognomeDocente&columns%5B10%5D%5Bdata%5D=Docente&columns%5B10%5D%5Bname%5D=Docente&columns%5B11%5D%5Bdata%5D=DataGiustificazione&columns%5B11%5D%5Bname%5D=DataGiustificazione&columns%5B12%5D%5Bdata%5D=Note&columns%5B12%5D%5Bname%5D=Note&columns%5B13%5D%5Bdata%5D=idLezione&columns%5B13%5D%5Bname%5D=idLezione&columns%5B14%5D%5Bdata%5D=idAlunno&columns%5B14%5D%5Bname%5D=idAlunno&columns%5B15%5D%5Bdata%5D=DeveGiustificare&columns%5B15%5D%5Bname%5D=DeveGiustificare&order%5B0%5D%5Bcolumn%5D=2&order%5B0%5D%5Bdir%5D=desc&order%5B1%5D%5Bcolumn%5D=3&order%5B1%5D%5Bdir%5D=desc&start=0&length=10000&search%5Bregex%5D=false&NumeroColonne=15&idAnnoAccademicoFiltroRR=13&MateriePFFiltroRR=0&RisultatiPagina=10000&SuffissoCampo=FiltroRR&NumeroPagina=1&OrderBy=DataOraInizio&ajax_target=DIVRisultati&ajax_tipotarget=elenco_ricerca_registri&z=1666466657560"
     canGetCookie = True
 
     try:
