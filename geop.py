@@ -1,6 +1,6 @@
 #!/bin/python
 #/data/user/0/ru.iiec.pydroid3/files/aarch64-linux-android/bin/python
-from requests import Session, utils
+from requests import Session, utils, ConnectionError
 from datetime import date, time, timedelta, datetime
 from getpass import getpass
 from sys import argv
@@ -209,15 +209,14 @@ def is_cookie_valid_in(url, session):
         raise Exception(colored(str(res.status) + " " + res.reason, "red"))
 
 def can_login(username, psw, session, url):
+    login_url = "/geopcfp2/update/login.asp?1=1&ajax_target=DIVHidden&ajax_tipotarget=login"
     body = {
         'username': username,
         'password': psw
     }
 
-    try: res = session.post(url, data=body)
-    except: 
-        # print(colored("Can't connect to url", "red"))
-        return True             # Connection exception will be handled by the lessons request
+    url += login_url
+    res = session.post(url, data=body)
 
     if res.status_code == 200:
         if "Username e password non validi" in res.text:    # valid password, ready to save cookies
@@ -225,6 +224,7 @@ def can_login(username, psw, session, url):
         return True
     else:
         print( colored(str(res.status) + " " + res.reason, "red") )
+    return False
 
 def correct_dates(start_date, end_date):
 
@@ -247,7 +247,6 @@ def main():
 
     site = "https://itsar.registrodiclasse.it"
     lessons_url = f"/geopcfp2/json/fullcalendar_events_alunno.asp?Oggetto=idAlunno&idOggetto=2672&editable=false&z=1665853136739&start={start_date}&end={end_date}&_=1665853136261"
-    login_url = "/geopcfp2/update/login.asp?1=1&ajax_target=DIVHidden&ajax_tipotarget=login"
     # used to get presence of the student from website
     presence_url = "https://itsar.registrodiclasse.it/geopcfp2/json/data_tables_ricerca_registri.asp"
     presence_body = "columns%5B0%5D%5Bdata%5D=idRegistroAlunno&columns%5B0%5D%5Bname%5D=idRegistroAlunno&columns%5B1%5D%5Bdata%5D=Giorno&columns%5B1%5D%5Bname%5D=Giorno&columns%5B2%5D%5Bdata%5D=Data&columns%5B2%5D%5Bname%5D=Data&columns%5B3%5D%5Bdata%5D=DataOraInizio&columns%5B3%5D%5Bname%5D=DataOraInizio&columns%5B4%5D%5Bdata%5D=DataOraFine&columns%5B4%5D%5Bname%5D=DataOraFine&columns%5B5%5D%5Bdata%5D=MinutiPresenza&columns%5B5%5D%5Bname%5D=MinutiPresenza&columns%5B6%5D%5Bdata%5D=MinutiAssenza&columns%5B6%5D%5Bname%5D=MinutiAssenza&columns%5B7%5D%5Bdata%5D=CodiceMateria&columns%5B7%5D%5Bname%5D=CodiceMateria&columns%5B8%5D%5Bdata%5D=Materia&columns%5B8%5D%5Bname%5D=Materia&columns%5B9%5D%5Bdata%5D=CognomeDocente&columns%5B9%5D%5Bname%5D=CognomeDocente&columns%5B10%5D%5Bdata%5D=Docente&columns%5B10%5D%5Bname%5D=Docente&columns%5B11%5D%5Bdata%5D=DataGiustificazione&columns%5B11%5D%5Bname%5D=DataGiustificazione&columns%5B12%5D%5Bdata%5D=Note&columns%5B12%5D%5Bname%5D=Note&columns%5B13%5D%5Bdata%5D=idLezione&columns%5B13%5D%5Bname%5D=idLezione&columns%5B14%5D%5Bdata%5D=idAlunno&columns%5B14%5D%5Bname%5D=idAlunno&columns%5B15%5D%5Bdata%5D=DeveGiustificare&columns%5B15%5D%5Bname%5D=DeveGiustificare&order%5B0%5D%5Bcolumn%5D=2&order%5B0%5D%5Bdir%5D=desc&order%5B1%5D%5Bcolumn%5D=3&order%5B1%5D%5Bdir%5D=desc&start=0&length=10000&search%5Bregex%5D=false&NumeroColonne=15&idAnnoAccademicoFiltroRR=13&MateriePFFiltroRR=0&RisultatiPagina=10000&SuffissoCampo=FiltroRR&NumeroPagina=1&OrderBy=DataOraInizio&ajax_target=DIVRisultati&ajax_tipotarget=elenco_ricerca_registri&z=1666466657560"
@@ -282,13 +281,24 @@ def main():
 
         if not is_cookie_valid_in(site + lessons_url, session):
             raise Exception()
+
+    except ConnectionError as e:
+        print(colored("Failed to connect. Check your internet connection", "red"))
+
     except:
         while True:
             psw = getpass()
-            url = site + login_url
-            if can_login(username, psw, session, url):
-                break
-            print(colored("Wrong password", "red"))
+            try:
+                if can_login(username, psw, session, site):
+                    break
+            except ConnectionError as e:
+                print(colored("Failed to connect. Check your internet connection", "red"))
+                sys.exit(1)
+            except:
+                print(colored("Something went wrong", "red"))
+                sys.exit(1)
+            else:
+                print(colored("Wrong password", "red"))
             sleep(1)
 
         cookies = session.cookies.get_dict()
@@ -296,17 +306,14 @@ def main():
             
     # LESSONS
     url = site + lessons_url
-    
-    try: res = session.get(url)
-    except: 
-        print(colored("Can't connect to url", "red"))
-        sys.exit(1)
-
-    if res.status_code == 200:
+    try:
+        res = session.get(url)
         lessons = extract_info(res.json())
         print_lessons(lessons)
-    else:
-        print( colored(str(res.status_code) + " " + res.reason, "red") )
+    except ConnectionError as e:
+        print(colored("Failed to connect. Check your internet connection", "red"))
+    except Exception as e:
+        print(e)
         sys.exit(1)
     
 
