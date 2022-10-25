@@ -29,6 +29,7 @@ I made it to speed up the access to my school's register, so i don't have to ope
 - Date format can be "dd-mm-yyyy" or "yyyy-mm-dd". If only on date is passed, it will be considered as *start_date*
 - Password typing won't be shown
 - Email and session's cookies are saved in the home directory
+- In case you can't see grey color in your terminal, change the color from "grey" to "yellow" in "extract_info()" function
 
 # <img src="https://cdn.icon-icons.com/icons2/317/PNG/512/key-icon_34404.png" width=20>  License
 You are free to modify and share the program as you like.<br>
