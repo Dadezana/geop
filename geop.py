@@ -84,7 +84,7 @@ def print_lessons(lessons):
             print( colored(f"\t\t{teacher}\rTeacher: ", color) )
             print( colored(f"\t\t{subject}\rSubject: ", color) )
             print( colored(f"\t\t{room}\rRoom: ", color) )
-            return
+            continue
 
         print( colored(f"\n{symbol} {weekday[:3]} {day[2]} {month} {day[0]}, {start}-{end}", color, attrs=["bold"]), end="" )
         print( colored(f" [Esame]" if type_ == "esame" else "", "magenta", attrs=["bold"]) )
@@ -239,6 +239,18 @@ def correct_dates(start_date, end_date):
         end_date = f"{end_date.year}-{end_date.month}-{end_date.day}"
 
     return start_date, end_date
+# todo: controllare che l'id delle lezioni corrisponda con le lezioni nella sezione "presenze"
+# todo: collezionare i dati necessari(ore presenza, id lezione) in un json e ritornare una lista di json
+def get_presence(session):
+    presence_url = "https://itsar.registrodiclasse.it/geopcfp2/json/data_tables_ricerca_registri.asp"
+    presence_body = f"columns%5B0%5D%5Bdata%5D=idRegistroAlunno&columns%5B0%5D%5Bname%5D=idRegistroAlunno&columns%5B1%5D%5Bdata%5D=Giorno&columns%5B1%5D%5Bname%5D=Giorno&columns%5B2%5D%5Bdata%5D=Data&columns%5B2%5D%5Bname%5D=Data&columns%5B3%5D%5Bdata%5D=DataOraInizio&columns%5B3%5D%5Bname%5D=DataOraInizio&columns%5B4%5D%5Bdata%5D=DataOraFine&columns%5B4%5D%5Bname%5D=DataOraFine&columns%5B5%5D%5Bdata%5D=MinutiPresenza&columns%5B5%5D%5Bname%5D=MinutiPresenza&columns%5B6%5D%5Bdata%5D=MinutiAssenza&columns%5B6%5D%5Bname%5D=MinutiAssenza&columns%5B7%5D%5Bdata%5D=CodiceMateria&columns%5B7%5D%5Bname%5D=CodiceMateria&columns%5B8%5D%5Bdata%5D=Materia&columns%5B8%5D%5Bname%5D=Materia&columns%5B9%5D%5Bdata%5D=CognomeDocente&columns%5B9%5D%5Bname%5D=CognomeDocente&columns%5B10%5D%5Bdata%5D=Docente&columns%5B10%5D%5Bname%5D=Docente&columns%5B11%5D%5Bdata%5D=DataGiustificazione&columns%5B11%5D%5Bname%5D=DataGiustificazione&columns%5B12%5D%5Bdata%5D=Note&columns%5B12%5D%5Bname%5D=Note&columns%5B13%5D%5Bdata%5D=idLezione&columns%5B13%5D%5Bname%5D=idLezione&columns%5B14%5D%5Bdata%5D=idAlunno&columns%5B14%5D%5Bname%5D=idAlunno&columns%5B15%5D%5Bdata%5D=DeveGiustificare&columns%5B15%5D%5Bname%5D=DeveGiustificare&order%5B0%5D%5Bcolumn%5D=2&order%5B0%5D%5Bdir%5D=desc&order%5B1%5D%5Bcolumn%5D=3&order%5B1%5D%5Bdir%5D=desc&start=0&length=10000&search%5Bregex%5D=false&NumeroColonne=15&idAnnoAccademicoFiltroRR=13&MateriePFFiltroRR=0&RisultatiPagina=10000&SuffissoCampo=FiltroRR&DataDaFiltroRR={start_date_filter}&DataAFiltroRR={end_date_filter}&NumeroPagina=1&OrderBy=DataOraInizio&ajax_target=DIVRisultati&ajax_tipotarget=elenco_ricerca_registri&z=1666466657560"
+    res = session.post(presence_url, data=presence_body)
+
+    # extract info
+    presences = []      # list of presence
+    attendance = {}     # single json
+    res = res.json()
+    
 
 def main():
     start_date, end_date, username = check_argv()
@@ -247,9 +259,6 @@ def main():
 
     site = "https://itsar.registrodiclasse.it"
     lessons_url = f"/geopcfp2/json/fullcalendar_events_alunno.asp?Oggetto=idAlunno&idOggetto=2672&editable=false&z=1665853136739&start={start_date}&end={end_date}&_=1665853136261"
-    # used to get presence of the student from website
-    presence_url = "https://itsar.registrodiclasse.it/geopcfp2/json/data_tables_ricerca_registri.asp"
-    presence_body = "columns%5B0%5D%5Bdata%5D=idRegistroAlunno&columns%5B0%5D%5Bname%5D=idRegistroAlunno&columns%5B1%5D%5Bdata%5D=Giorno&columns%5B1%5D%5Bname%5D=Giorno&columns%5B2%5D%5Bdata%5D=Data&columns%5B2%5D%5Bname%5D=Data&columns%5B3%5D%5Bdata%5D=DataOraInizio&columns%5B3%5D%5Bname%5D=DataOraInizio&columns%5B4%5D%5Bdata%5D=DataOraFine&columns%5B4%5D%5Bname%5D=DataOraFine&columns%5B5%5D%5Bdata%5D=MinutiPresenza&columns%5B5%5D%5Bname%5D=MinutiPresenza&columns%5B6%5D%5Bdata%5D=MinutiAssenza&columns%5B6%5D%5Bname%5D=MinutiAssenza&columns%5B7%5D%5Bdata%5D=CodiceMateria&columns%5B7%5D%5Bname%5D=CodiceMateria&columns%5B8%5D%5Bdata%5D=Materia&columns%5B8%5D%5Bname%5D=Materia&columns%5B9%5D%5Bdata%5D=CognomeDocente&columns%5B9%5D%5Bname%5D=CognomeDocente&columns%5B10%5D%5Bdata%5D=Docente&columns%5B10%5D%5Bname%5D=Docente&columns%5B11%5D%5Bdata%5D=DataGiustificazione&columns%5B11%5D%5Bname%5D=DataGiustificazione&columns%5B12%5D%5Bdata%5D=Note&columns%5B12%5D%5Bname%5D=Note&columns%5B13%5D%5Bdata%5D=idLezione&columns%5B13%5D%5Bname%5D=idLezione&columns%5B14%5D%5Bdata%5D=idAlunno&columns%5B14%5D%5Bname%5D=idAlunno&columns%5B15%5D%5Bdata%5D=DeveGiustificare&columns%5B15%5D%5Bname%5D=DeveGiustificare&order%5B0%5D%5Bcolumn%5D=2&order%5B0%5D%5Bdir%5D=desc&order%5B1%5D%5Bcolumn%5D=3&order%5B1%5D%5Bdir%5D=desc&start=0&length=10000&search%5Bregex%5D=false&NumeroColonne=15&idAnnoAccademicoFiltroRR=13&MateriePFFiltroRR=0&RisultatiPagina=10000&SuffissoCampo=FiltroRR&NumeroPagina=1&OrderBy=DataOraInizio&ajax_target=DIVRisultati&ajax_tipotarget=elenco_ricerca_registri&z=1666466657560"
     canGetCookie = True
 
     try:
