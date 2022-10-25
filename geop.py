@@ -20,7 +20,8 @@ def extract_info(info):
     WEEKDAY = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     SYMBOLS = {
         "ok": "✔",
-        "cross": "x"
+        "cross": "x",
+        "now": "¤"
     }
 
     lessons = []    # list of dictionaries. used to sort the lessons before displaying them
@@ -39,14 +40,19 @@ def extract_info(info):
         lesson["weekday"] = WEEKDAY[weekday_num]
         lesson["type"]    = _lesson["ClasseEvento"].lower()
 
-        lesson_date = datetime(int(lesson["day"][0]), int(lesson["day"][1]), int(lesson["day"][2]), int(lesson["start"].split(":")[0]), int(lesson["start"].split(":")[1]))
+        lesson_date = datetime(int(lesson["day"][0]), int(lesson["day"][1]), int(lesson["day"][2]), int(lesson["end"].split(":")[0]), int(lesson["end"].split(":")[1]))
         lesson["isDone"] = lesson_date < datetime.today()
         
         lesson["color"] = "white"
         lesson["symbol"] = SYMBOLS["cross"]
+
         if lesson["isDone"] == True:
-            lesson["color"] = "white"
+            lesson["color"] = "grey"
             lesson["symbol"] = SYMBOLS["ok"]
+
+        elif datetime.today().hour < lesson_date.hour:
+            lesson["color"] = "green"
+            lesson["symbol"] = SYMBOLS["now"]
         
         if lesson["type"] == "esame":
             lesson["color"] = "magenta"
