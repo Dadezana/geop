@@ -1,6 +1,6 @@
 # Geop<br>![Cocoapods platforms](https://img.shields.io/badge/Platform-Windows-blue) ![Cocoapods platforms](https://img.shields.io/badge/Platform-Linux-yellow) ![Cocoapods platforms](https://img.shields.io/badge/Platform-Android-green) ![Cocoapods platforms](https://img.shields.io/badge/Platform-MacOS-red)
 Cross-platform program tested on Windows, Linux and Android<br>
-I made it to speed up the access to my school's register, so i don't have to open the browser, search for the register and so on...
+I made it to speed up the access to my school's register, so i don't have, every time, to open the browser, search for the register and so on...
 
 # How to use it
 >Install packages: `pip -r requirements.txt`<br>
@@ -26,10 +26,9 @@ I made it to speed up the access to my school's register, so i don't have to ope
 ### What to know
 - All the arguments are optional
 - You can pass the arguments in every order you like
-- Date format can be "dd-mm-yyyy" or "yyyy-mm-dd". If only on date is passed, it will be considered as *start_date*
+- Date format can be "dd-mm-yyyy" or "yyyy-mm-dd". If only one date is passed, it will be considered as *start_date*
 - Password typing won't be shown
 - Email and session's cookies are saved in the home directory
-- In case you can't see grey color in your terminal, change the color from "grey" to "yellow" in "extract_info()" function
 
 # <img src="https://cdn.icon-icons.com/icons2/317/PNG/512/key-icon_34404.png" width=20>  License
 You are free to modify and share the program as you like.<br>
