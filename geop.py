@@ -103,6 +103,16 @@ def check_argv():
     username = ""
 
     for arg in argv[1:]:
+
+        if arg == 'today':
+            arg = date.today().strftime("%d-%m-%Y")
+        elif arg == 'yesterday':
+            arg = date.today() + timedelta(days=-1)
+            arg = arg.strftime("%d-%m-%Y")
+        elif arg == 'tomorrow':
+            arg = date.today() + timedelta(days=1)
+            arg = arg.strftime("%d-%m-%Y")
+
         if re.match("^(0?[1-9]|[12][0-9]|3[01])\-(0?[1-9]|1[012])\-\d{4}$", arg):   # [d]d-[m]m-yyyy
 
             if start_date != "" and end_date != "":
