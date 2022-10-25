@@ -119,7 +119,9 @@ def check_argv():
             arg = date.today() + timedelta(days=1)
             arg = arg.strftime("%d-%m-%Y")
 
-        if re.match("^(0?[1-9]|[12][0-9]|3[01])\-(0?[1-9]|1[012])\-\d{4}$", arg):   # [d]d-[m]m-yyyy
+        if re.match("^(0?[1-9]|[12][0-9]|3[01])(\-|\/)(0?[1-9]|1[012])(\-|\/)\d{4}$", arg):   # [d]d-[m]m-yyyy
+
+            arg = arg.replace("/", "-")
 
             if start_date != "" and end_date != "":
                 print( colored("Error: Too much dates passed.\nOnly the first two will be taken into consideration", "red") )
@@ -144,7 +146,9 @@ def check_argv():
             end_date = f"{end_date.year}-{end_date.month}-{end_date.day}"
             
 
-        elif re.match("^\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])$", arg):   # yyyy-[m]m-[d]d
+        elif re.match("^\d{4}(\-|\/)(0?[1-9]|1[012])(\-|\/)(0?[1-9]|[12][0-9]|3[01])$", arg):   # yyyy-[m]m-[d]d
+
+            arg = arg.replace("/", "-")
 
             if start_date != "" and end_date != "":
                 print( colored("Error: Too much dates passed.\nOnly the first two will be taken into consideration", "red") )
