@@ -47,7 +47,7 @@ def extract_info(info):
         lesson["symbol"] = SYMBOLS["cross"]
 
         if lesson["isDone"] == True:
-            lesson["color"] = "grey"
+            lesson["color"] = "cyan"
             lesson["symbol"] = SYMBOLS["ok"]
 
         elif datetime.today().hour < lesson_date.hour:
