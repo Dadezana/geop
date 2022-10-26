@@ -20,7 +20,7 @@ def extract_info(info):
     WEEKDAY = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     SYMBOLS = {
         "ok": "✔",
-        "cross": "x",
+        "cross": "-",
         "now": "¤"
     }
 
@@ -29,11 +29,11 @@ def extract_info(info):
     for _lesson in info:
         lesson = {}
         lesson["id"]      = int(_lesson["id"])
-        lesson["subject"] = _lesson["tooltip"].split("<br>")[1].split(":")[1].strip().replace("Ã", "à")
-        lesson["teacher"] = _lesson["tooltip"].split("<br>")[4].split(":")[1].strip()
+        lesson["subject"] = _lesson["tooltip"].split("Materia:")[1].split("<br>")[0].strip().replace("Ã", "à")
+        lesson["teacher"] = _lesson["tooltip"].split("Docente:")[1].split("<br>")[0].strip()
         lesson["start"]   = _lesson["start"].split("T")[1][:-3].strip()
         lesson["end"]     = _lesson["end"].split("T")[1][:-3].strip()
-        lesson["room"]    = _lesson["tooltip"].split("<br>")[2].split(":")[1].strip()
+        lesson["room"]    = _lesson["tooltip"].split("Aula:")[1].split("<br>")[0].strip()
         lesson["day"]     = _lesson["start"].split("T")[0].split("-")
         lesson["month"]   = calendar.month_abbr[int(lesson["day"][1])]
         weekday_num       = calendar.weekday( int(lesson["day"][0]), int(lesson["day"][1]), int(lesson["day"][2]) )
@@ -53,7 +53,7 @@ def extract_info(info):
 
         elif (datetime.today().hour < lesson_date_end.hour and
               datetime.today().hour > lesson_date_start.hour and
-              datetime.today().date() == lesson_date.date()):
+              datetime.today().date() == lesson_date_start.date()):
             lesson["color"] = "green"
             lesson["symbol"] = SYMBOLS["now"]
         
