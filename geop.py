@@ -20,8 +20,9 @@ def extract_info(info):
     WEEKDAY = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     SYMBOLS = {
         "ok": "✔",
-        "cross": "-",
-        "now": "¤"
+        "dash": "-",
+        "now": "¤",
+        "cross": "x"
     }
 
     lessons = []    # list of dictionaries. used to sort the lessons before displaying them
@@ -45,7 +46,7 @@ def extract_info(info):
         lesson["isDone"] = lesson_date_end < datetime.today()
         
         lesson["color"] = "white"
-        lesson["symbol"] = SYMBOLS["cross"]
+        lesson["symbol"] = SYMBOLS["dash"]
 
         if lesson["isDone"] == True:
             lesson["color"] = "cyan"
@@ -56,6 +57,9 @@ def extract_info(info):
               datetime.today().date() == lesson_date_start.date()):
             lesson["color"] = "green"
             lesson["symbol"] = SYMBOLS["now"]
+
+        elif "sospensione didattica" in lesson["teacher"].lower():
+            lesson["symbol"] = SYMBOLS["cross"]
         
         if lesson["type"] == "esame":
             lesson["color"] = "magenta"
