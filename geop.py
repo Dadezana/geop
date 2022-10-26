@@ -51,8 +51,8 @@ def extract_info(info):
             lesson["color"] = "cyan"
             lesson["symbol"] = SYMBOLS["ok"]
 
-        elif (datetime.today().hour < lesson_date_end.hour and
-              datetime.today().hour > lesson_date_start.hour and
+        elif (datetime.today() < lesson_date_end and
+              datetime.today() > lesson_date_start and
               datetime.today().date() == lesson_date_start.date()):
             lesson["color"] = "green"
             lesson["symbol"] = SYMBOLS["now"]
