@@ -40,8 +40,9 @@ def extract_info(info):
         lesson["weekday"] = WEEKDAY[weekday_num]
         lesson["type"]    = _lesson["ClasseEvento"].lower()
 
-        lesson_date = datetime(int(lesson["day"][0]), int(lesson["day"][1]), int(lesson["day"][2]), int(lesson["end"].split(":")[0]), int(lesson["end"].split(":")[1]))
-        lesson["isDone"] = lesson_date < datetime.today()
+        lesson_date_start = datetime(int(lesson["day"][0]), int(lesson["day"][1]), int(lesson["day"][2]), int(lesson["start"].split(":")[0]), int(lesson["start"].split(":")[1]))
+        lesson_date_end = datetime(int(lesson["day"][0]), int(lesson["day"][1]), int(lesson["day"][2]), int(lesson["end"].split(":")[0]), int(lesson["end"].split(":")[1]))
+        lesson["isDone"] = lesson_date_end < datetime.today()
         
         lesson["color"] = "white"
         lesson["symbol"] = SYMBOLS["cross"]
@@ -50,7 +51,9 @@ def extract_info(info):
             lesson["color"] = "cyan"
             lesson["symbol"] = SYMBOLS["ok"]
 
-        elif datetime.today().hour < lesson_date.hour:
+        elif (datetime.today().hour < lesson_date_end.hour and
+              datetime.today().hour > lesson_date_start.hour and
+              datetime.today().date() == lesson_date.date()):
             lesson["color"] = "green"
             lesson["symbol"] = SYMBOLS["now"]
         
