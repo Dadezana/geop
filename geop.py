@@ -68,7 +68,6 @@ def extract_info(info):
 
     return lessons
 
-# todo: far si che il formato della data sia sempre di tipo "date"
 def print_lessons(lessons):
     
     lessons.sort(key=lambda l: (int(l["day"][0]), int(l["day"][1]), int(l["day"][2]) ))
@@ -115,6 +114,8 @@ def check_argv():
     end_date = ""
     username = ""
 
+    used_plus_notation = False    # for example: geop +5
+
     for arg in argv[1:]:
 
         if arg == 'today':
@@ -148,9 +149,6 @@ def check_argv():
 
             # the register doesn't count the last day provided when fetching the db
             end_date += timedelta(days=1)
-
-            start_date = f"{start_date.year}-{start_date.month}-{start_date.day}"            
-            end_date = f"{end_date.year}-{end_date.month}-{end_date.day}"
             
 
         elif re.match("^\d{4}(\-|\/)(0?[1-9]|1[012])(\-|\/)(0?[1-9]|[12][0-9]|3[01])$", arg):   # yyyy-[m]m-[d]d
@@ -175,9 +173,21 @@ def check_argv():
 
             # the register doesn't count the last day provided when fetching the db
             end_date += timedelta(days=1)
+
+
+        elif re.match("^[\+|-][\d]+$", arg):
+            if start_date != "" and end_date != "":
+                print( colored("Error: Too much dates passed.\nOnly the first two will be taken into consideration", "red") )
+                continue
             
-            start_date = f"{start_date.year}-{start_date.month}-{start_date.day}"            
-            end_date = f"{end_date.year}-{end_date.month}-{end_date.day}"
+            used_plus_notation = True
+            try:    days = int(arg.split("+")[1])
+            except: days = -int(arg.split("-")[1])
+
+            if start_date == "":
+                start_date = date.today() + timedelta(days)
+            else:
+                end_date = start_date + timedelta(days+1)       # +1 because the register doesn't take count of the last day provided when fetching the db
 
 
         elif re.match(MAIL_REGEX, arg):
@@ -187,6 +197,15 @@ def check_argv():
         else:
             print(colored(f"Unrecognized option {arg}", "red"))
 
+
+    if used_plus_notation and end_date == "":
+        end_date = start_date + timedelta(1)       # the register doesn't count the last day provided when fetching the db
+        start_date = date.today()
+        if start_date > end_date:
+            start_date, end_date = swap(start_date, end_date)
+
+    start_date = f"{start_date.year}-{start_date.month}-{start_date.day}"   if start_date != "" else ""   
+    end_date = f"{end_date.year}-{end_date.month}-{end_date.day}"           if end_date != "" else ""
     return start_date, end_date, username
 
 def get_file_content(file_name):
@@ -345,7 +364,7 @@ def main():
     try:
         res = session.get(url)
         lessons = extract_info(res.json())
-        print_lessons(lessons)
+        print_lessons(lessons)  if len(lessons) > 0 else print(colored(f"No lessons found", "yellow", attrs=["underline"]))
     except ConnectionError as e:
         print(colored("Failed to connect. Check your internet connection", "red"))
     except Exception as e:
