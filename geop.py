@@ -127,7 +127,7 @@ def check_argv():
             arg = date.today() + timedelta(days=1)
             arg = arg.strftime("%d-%m-%Y")
 
-        if re.match("^(0?[1-9]|[12][0-9]|3[01])(\-|\/)(0?[1-9]|1[012])(\-|\/)\d{4}$", arg):   # [d]d-[m]m-yyyy
+        if re.match("^(0?[1-9]|[12][0-9]|3[01])(\-|\/)(0?[1-9]|1[012])(\-\d{4}|\/\d{4})?$", arg):   # [d]d-[m]m-yyyy
 
             arg = arg.replace("/", "-")
 
@@ -137,7 +137,8 @@ def check_argv():
 
             d = int(arg.split("-")[0])
             m = int(arg.split("-")[1])
-            y = int(arg.split("-")[2])
+            try:    y = int(arg.split("-")[2])
+            except: y = date.today().year
 
             if start_date == "":
                 start_date = date(y, m ,d)
@@ -204,8 +205,6 @@ def check_argv():
         if start_date > end_date:
             start_date, end_date = swap(start_date, end_date)
 
-    start_date = f"{start_date.year}-{start_date.month}-{start_date.day}"   if start_date != "" else ""   
-    end_date = f"{end_date.year}-{end_date.month}-{end_date.day}"           if end_date != "" else ""
     return start_date, end_date, username
 
 def get_file_content(file_name):
@@ -272,6 +271,7 @@ def can_login(username, psw, session, url):
         print( colored(str(res.status) + " " + res.reason, "red") )
     return False
 
+# checks if all dates are set and converts dates to strings
 def correct_dates(start_date, end_date):
 
     if start_date == "":
